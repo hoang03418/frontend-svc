@@ -1,0 +1,48 @@
+name: Mobile CI/CD - Technician App (uni-app, pnpm)
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build:
+    name: Build Technician Mobile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install pnpm
+        run: npm install -g pnpm@8
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build uni-app H5
+        run: pnpm run build:h5
+
+      - name: Build WeChat Mini Program
+        run: pnpm run build:mp-weixin
+
+      - name: Upload H5 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: technician-h5
+          path: unpackage/dist/**/*.{html,js,css,png,jpg,svg,woff,woff2}
+
+      - name: Upload MP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: technician-mp-weixin
+          path: unpackage/dist/**/*.{html,js,css,png,jpg,svg,woff,woff2}
